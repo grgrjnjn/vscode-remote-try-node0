@@ -9,6 +9,8 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.19.2"
+    "chromedriver": "^127.0.3",
+    "express": "^4.19.2",
+    "selenium-webdriver": "^4.23.0"
   }
 }
