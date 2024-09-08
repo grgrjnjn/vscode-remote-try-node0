@@ -38,3 +38,4 @@ console.log(areTextsSimilar(message0, message6));
 console.log(areTextsSimilar(message0, message7));
 console.log(areTextsSimilar(message0, message8));
 console.log(areTextsSimilar(message0, message9));
+console.log(areTextsSimilar(message5, message7));

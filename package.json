@@ -11,6 +11,8 @@
   "dependencies": {
     "chromedriver": "^127.0.3",
     "express": "^4.19.2",
+    "kuromoji": "^0.1.2",
+    "natural": "^8.0.1",
     "selenium-webdriver": "^4.24.0",
     "string-similarity": "^4.0.4"
   }
