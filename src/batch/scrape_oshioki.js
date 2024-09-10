@@ -62,6 +62,9 @@ async function scrapeData(htmlFileName) {
       // 投稿時間を取得
       result.postTime = await panel.findElement(By.css('.panel-time')).getText();
 
+      // 同一投稿数を追加
+      result.同一投稿数 = 1;
+
       results.push(result);
     }
 
