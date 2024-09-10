@@ -58,7 +58,7 @@ const pipe = (...fns) => x =>
 
 const savePageHtml = async url => {
   const driver = await createDriver(createChromeOptions());
-  const outputDir = path.join(__dirname, '../..', 'data', 'html');
+  const outputDir = path.join(__dirname, '../..', 'data', 'source', 'html');
   
   try {
     const htmlContent = await getPageHtml(driver, url);
