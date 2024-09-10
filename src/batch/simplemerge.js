@@ -1,13 +1,16 @@
 // あなたは優秀なプログラマです。
 // 私はLinux上で、node.jsとselenium（ヘッドレスモード）を用いたプログラミングをしています。
 
-// data/source/json/oshioki_20240910082306.json
-// data/source/json/oshioki_20240910092703.json
-// のような2つのファイルを単純マージして、
-// data/content/board_data_20240910102820.json
+// 2つのファイルを単純にマージして
+// data/content/merge_20240910102820.json
 // のようなファイルを生成する。
-// マージする2つのファイルのファイル名は起動時に指定する。
-// 出力ファイル名は、board_data_yyyymmddhh24miss.jsonとする。
+// 出力ファイル名は、merge_yyyymmddhh24miss.jsonとする。
+
+// マージする2つのファイルのファイル名は起動時に指定する。以下のような指定が想定される。
+// data/source/json/oshioki_20240910082306.json
+// data/content/merge_20240910131036.json
+// data/content/board_data_20240910131401.json
+
 
 // マージするファイルは以下のような内容である。
 
@@ -67,8 +70,8 @@ const path = require('path');
 async function mergeJsonFiles(file1, file2) {
     try {
         // 入力ファイルのパスを構築
-        const inputPath1 = path.join(__dirname, '..', '..', 'data', 'source', 'json', file1);
-        const inputPath2 = path.join(__dirname, '..', '..', 'data', 'source', 'json', file2);
+        const inputPath1 = path.resolve(__dirname, '..', '..', file1);
+        const inputPath2 = path.resolve(__dirname, '..', '..', file2);
 
         // JSONファイルを読み込む
         const data1 = JSON.parse(await fs.readFile(inputPath1, 'utf8'));
@@ -85,7 +88,7 @@ async function mergeJsonFiles(file1, file2) {
                           ('0' + now.getHours()).slice(-2) +
                           ('0' + now.getMinutes()).slice(-2) +
                           ('0' + now.getSeconds()).slice(-2);
-        const outputFileName = `board_data_${timestamp}.json`;
+        const outputFileName = `merge_${timestamp}.json`;
 
         // 出力ファイルのパスを構築
         const outputPath = path.join(__dirname, '..', '..', 'data', 'content', outputFileName);
