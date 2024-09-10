@@ -8,7 +8,7 @@ const HOST = '0.0.0.0';
 
 app.get('/', async (req, res) => {
   try {
-    const filePath = path.join(__dirname, 'board_data.json');
+    const filePath = path.join(__dirname, 'public', 'board_data.json');
     const data = await fs.readFile(filePath, 'utf8');
     const jsonData = JSON.parse(data);
 
@@ -73,6 +73,11 @@ app.get('/', async (req, res) => {
                 color: #6c757d;
                 text-align: right;
             }
+            .post-count {
+                font-size: 0.8em;
+                color: #28a745;
+                margin-left: 10px;
+            }
         </style>
     </head>
     <body>
@@ -83,6 +88,7 @@ app.get('/', async (req, res) => {
                     <div class="post-header">
                         <span class="post-name">${post.name}</span>
                         <span class="post-email">&lt;${post.email}&gt;</span>
+                        <span class="post-count">同一投稿数: ${post.同一投稿数}</span>
                     </div>
                     <div class="post-info">
                         住所: ${post.住所} | 年齢: ${post.年齢} | スタイル: ${post.ｽﾀｲﾙ} | 体型: ${post.体型}
