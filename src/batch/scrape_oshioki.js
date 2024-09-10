@@ -3,7 +3,7 @@ const chrome = require('selenium-webdriver/chrome');
 const fs = require('fs').promises;
 const path = require('path');
 
-async function scrapeData() {
+async function scrapeData(htmlFileName) {
   let driver;
 
   try {
@@ -20,7 +20,7 @@ async function scrapeData() {
       .build();
 
     // ローカルのHTMLファイルのパスを取得
-    const htmlPath = path.resolve(__dirname, '..', '..', 'data', 'html', 'oshioki_20240908103242.html');
+    const htmlPath = path.resolve(__dirname, '..', '..', 'data', 'source', 'html', htmlFileName);
     const fileUrl = `file://${htmlPath}`;
 
     // ローカルのHTMLファイルにアクセス
@@ -65,9 +65,13 @@ async function scrapeData() {
       results.push(result);
     }
 
+    // JSONファイルの名前と保存場所を設定
+    const jsonFileName = path.basename(htmlFileName, '.html') + '.json';
+    const jsonFilePath = path.resolve(__dirname, '..', '..', 'data', 'source', 'json', jsonFileName);
+
     // 結果をJSONファイルに保存
-    await fs.writeFile('board_data.json', JSON.stringify(results, null, 2));
-    console.log('データが正常に保存されました。');
+    await fs.writeFile(jsonFilePath, JSON.stringify(results, null, 2));
+    console.log(`データが正常に保存されました: ${jsonFilePath}`);
 
   } catch (error) {
     console.error('エラーが発生しました:', error);
@@ -78,4 +82,12 @@ async function scrapeData() {
   }
 }
 
-scrapeData();
+// コマンドライン引数からHTMLファイル名を取得
+const htmlFileName = process.argv[2];
+
+if (!htmlFileName) {
+  console.error('HTMLファイル名を引数として指定してください。');
+  process.exit(1);
+}
+
+scrapeData(htmlFileName);
