@@ -1,82 +1,69 @@
-const { Builder } = require('selenium-webdriver');
+const { Builder, By, until } = require('selenium-webdriver');
 const chrome = require('selenium-webdriver/chrome');
 const fs = require('fs').promises;
 const path = require('path');
 
-const createChromeOptions = () => 
-  new chrome.Options()
-    .addArguments('--headless')
-    .addArguments('--no-sandbox')
-    .addArguments('--disable-dev-shm-usage');
+async function scrapeAndModifyHtml(url) {
+  let driver;
 
-const createDriver = options => 
-  new Builder()
-    .forBrowser('chrome')
-    .setChromeOptions(options)
-    .build();
+  try {
+    const options = new chrome.Options();
+    options.addArguments('--headless', '--no-sandbox', '--disable-dev-shm-usage');
 
-const getPageHtml = async (driver, url) => {
-  await driver.get(url);
-  return driver.getPageSource();
-};
+    driver = await new Builder()
+      .forBrowser('chrome')
+      .setChromeOptions(options)
+      .build();
 
-const generateFileName = () => {
-  const formatDate = date => 
-    date.toISOString().replace(/[-:T]/g, '').slice(0, 14);
-  return `kanojo_${formatDate(new Date())}.html`;
-};
+    await driver.get(url);
+    const html = await driver.getPageSource();
+    const modifiedHtml = await modifyLinks(driver, html);
 
-const ensureDirectoryExists = async dirPath => {
+    const fileName = `kanajo_${Date.now()}.html`;
+    const outputDir = path.join(__dirname, '..', '..', 'data', 'source', 'html');
+    await ensureDirectoryExists(outputDir);
+    const filePath = path.join(outputDir, fileName);
+    await fs.writeFile(filePath, modifiedHtml);
+
+    console.log(`Modified HTML saved to: ${filePath}`);
+
+  } catch (error) {
+    console.error('An error occurred:', error);
+  } finally {
+    if (driver) {
+      await driver.quit();
+    }
+  }
+}
+
+async function modifyLinks(driver, html) {
+  const linkPattern = /<a href="https:\/\/kanajo\.com\/public\/mail\/\?type=comment&amp;id=(\d+)">([^<]+)<\/a>/g;
+  let match;
+  let modifiedHtml = html;
+
+  while ((match = linkPattern.exec(html)) !== null) {
+    const [fullMatch, id, linkText] = match;
+    const mailUrl = `https://kanajo.com/public/mail/?type=comment&id=${id}`;
+    
+    await driver.get(mailUrl);
+    const mailLink = await driver.wait(until.elementLocated(By.css('a[href^="mailto:"]')), 5000);
+    const mailHref = await mailLink.getAttribute('href');
+    const email = mailHref.replace('mailto:', '');
+
+    const newLink = `<a href="mailto:${email}">${linkText}</a>`;
+    modifiedHtml = modifiedHtml.replace(fullMatch, newLink);
+  }
+
+  return modifiedHtml;
+}
+
+async function ensureDirectoryExists(dirPath) {
   try {
     await fs.access(dirPath);
   } catch (error) {
     await fs.mkdir(dirPath, { recursive: true });
   }
-};
+}
 
-const saveHtmlToFile = async (dirPath, filename, content) => {
-  await ensureDirectoryExists(dirPath);
-  const fullPath = path.join(dirPath, filename);
-  await fs.writeFile(fullPath, content, 'utf-8');
-  return fullPath;
-};
-
-const logSuccess = filePath => 
-  console.log(`File saved successfully: ${filePath}`);
-
-const handleError = error => 
-  console.error('An error occurred:', error);
-
-const cleanup = async driver => {
-  if (driver) {
-    await driver.quit();
-  }
-};
-
-const pipe = (...fns) => x => 
-  fns.reduce((v, f) => f(v), x);
-
-const savePageHtml = async url => {
-  const driver = await createDriver(createChromeOptions());
-  const outputDir = path.join(__dirname, '../..', 'data', 'source', 'html');
-  
-  try {
-    const htmlContent = await getPageHtml(driver, url);
-    const filename = generateFileName();
-    
-    const savedFilePath = await pipe(
-      () => saveHtmlToFile(outputDir, filename, htmlContent),
-      logSuccess
-    )();
-    
-    return savedFilePath;
-  } catch (error) {
-    handleError(error);
-  } finally {
-    await cleanup(driver);
-  }
-};
-
-// 実行
 const url = 'https://kanajo.com/public/thread/index?id=1';
-savePageHtml(url).then(() => console.log('Process completed'));
+scrapeAndModifyHtml(url);
