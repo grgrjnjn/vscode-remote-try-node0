@@ -11,6 +11,7 @@
 // ファイル名は、board_data_YYYYmmddhh24miss.json とする。
 
 // emailが同じ場合は重複と判定し、postTimeが新しい方を残し、古い方を破棄する。同一投稿数は合計値に更新する。
+// 出力時には、postTimeの降順にソートする。
 
 // ###JSONファイル（例）
 // [
@@ -161,10 +162,11 @@
 //     }
 //   ]
 
+
 const fs = require('fs').promises;
 const path = require('path');
 
-async function removeDuplicates(inputFileName) {
+async function removeDuplicatesAndSort(inputFileName) {
     try {
         // 入力ファイルのパスを構築
         const inputPath = path.join(__dirname, '..', '..', 'data', 'content', inputFileName);
@@ -187,6 +189,11 @@ async function removeDuplicates(inputFileName) {
             }
         }
 
+        // オブジェクトを配列に変換し、postTimeでソート
+        const sortedData = Object.values(mergedData).sort((a, b) => 
+            new Date(b.postTime) - new Date(a.postTime)
+        );
+
         // 出力ファイル名を生成
         const now = new Date();
         const timestamp = now.getFullYear() +
@@ -200,10 +207,10 @@ async function removeDuplicates(inputFileName) {
         // 出力ファイルのパスを構築
         const outputPath = path.join(__dirname, '..', '..', 'data', 'content', outputFileName);
 
-        // マージしたデータを新しいJSONファイルに書き込む
-        await fs.writeFile(outputPath, JSON.stringify(Object.values(mergedData), null, 2));
+        // ソートされたデータを新しいJSONファイルに書き込む
+        await fs.writeFile(outputPath, JSON.stringify(sortedData, null, 2));
 
-        console.log(`重複排除が完了しました。出力ファイル: ${outputPath}`);
+        console.log(`重複排除とソートが完了しました。出力ファイル: ${outputPath}`);
     } catch (error) {
         console.error('エラーが発生しました:', error);
     }
@@ -217,4 +224,4 @@ if (!inputFileName) {
     process.exit(1);
 }
 
-removeDuplicates(inputFileName);
+removeDuplicatesAndSort(inputFileName);
