@@ -1,0 +1,86 @@
+（cronなどで）定期実行
+アクセス間隔をランダム化して、プラグイン（HTML取得）を実行、エラー時はリトライする
+メールアドレス取得のサイトごとの特殊処理を含む
+（次のタスクをキューに積んで終了）
+src/savepage/savepagehtml.js
+src/savepage/plugin/oshioki.js
+src/savepage/plugin/kanojo.js
+↓
+data/source/html/oshioki_yyyymmddhh24miss.html
+data/source/html/kanojo_yyyymmddhh24miss.html
+
+キューを取得して実行 or 定期実行
+HTML→JSON
+（次の処理を継続）
+src/convert/convert2json.js
+src/convert/plugins/oshioki.js
+src/convert/plugins/kanojo.js
+↓
+data/source/json/oshioki_yyyymmddhh24miss.json
+data/source/json/kanojo_yyyymmddhh24miss.json
+
+（前の処理から継続）
+jsonファイルを読み込む
+    プラグイン数分だけ?
+    最新N分の更新ファイル？
+最新のboard_data_yyyymmddhh24miss.jsonファイルを読み込む
+jsonファイルを1つずつ処理
+board_dataと比較して同一投稿は破棄（同一投稿：メールアドレス＆投稿日時に一致）
+board_dataと比較して類似投稿は類似投稿数をカウントアップして最新データを採用上書き
+（類似投稿：メールアドレス一致 or 本文類似 or 画像類似）
+新しい投稿は追加
+新しいboard_data_yyyymmddhh24miss.jsonファイルを保存
+（次の処理を継続）
+src/merge.js
+data/contents/board_data_yyyymmddhh24miss.json
+↓
+data/source/json/oshioki_yyyymmddhh24miss.json
+data/source/json/kanojo_yyyymmddhh24miss.json
+↓
+data/contents/board_data_yyyymmddhh24miss.json
+
+（前の処理から継続）
+最新のboard_data_yyyymmddhh24miss.jsonから
+グローバルブラックリストの投稿を除き、publicを上書き
+published.js
+data/contents/board_data_yyyymmddhh24miss.json
+↓
+public/board_data.json
+
+
+
+投稿JSON
+
+    {
+      "name": "ちひろ",
+      "email": "sweetyappi@hotmail.com",
+      "area": ["東京", "新宿"],
+      "age": "35〜44歳",
+      "sexuality": "完全女装",
+      "bodyShape": "普通",
+      "message": "こんにちは。お会いできるといいな。\n肉体鍛えてるスポーツ系イクメンさん、学生さん、女性に飽きて新しい刺激を求めてる方入れば是非試してみてね！パンプアップ中で性欲抑えきれなくて吐口探してるノンケさん。もちろん無料ですが、プロフと写はよろしくね。都内、場所あり。",
+      "images": [
+        "https://oshioki24.com/board/view/Ew9zdmfeFBAGQc3aZhOgJDmC1UAxcMSl"
+      ],
+      "postTime": "2024.09.10(火) 17:11"
+    },
+
+公開JSON
+    {
+      "postId": "xxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "posts": [
+        ["site": "おしおき", "name": "ちひろ", "email": "sweetyappi@hotmail.com", "postTime": "2024.09.10(火) 17:11"],
+        ["site": "おしおき", "name": "ちひろ", "email": "sweetyappi@hotmail.com", "postTime": "2024.09.10(火) 18:34"],
+        ["site": "カノジョ", "name": "ちひろ", "email": "sweety@gmail.com", "postTime": "2024.09.10(火) 16:08"]
+      ],
+      "address": ["東京", "新宿"],
+      "age": "35〜44歳",
+      "sexuality": "完全女装",
+      "bodyShape": "普通",
+      "message": "こんにちは。お会いできるといいな。\n肉体鍛えてるスポーツ系イクメンさん、学生さん、女性に飽きて新しい刺激を求めてる方入れば是非試してみてね！パンプアップ中で性欲抑えきれなくて吐口探してるノンケさん。もちろん無料ですが、プロフと写はよろしくね。都内、場所あり。",
+      "images": [
+        "https://oshioki24.com/board/view/Ew9zdmfeFBAGQc3aZhOgJDmC1UAxcMSl"
+      ],
+      "postTime": "2024.09.10(火) 17:11",
+      "numberOfSimilarPosts": 3
+    },
