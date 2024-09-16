@@ -10,6 +10,9 @@ data/source/html/oshioki_yyyymmddhh24miss.html
 data/source/html/kanojo_yyyymmddhh24miss.html
 
 キューを取得して実行 or 定期実行
+HTMLファイルを読み込む
+    プラグイン数分だけ?
+    最新N分の更新ファイル？
 HTML→JSON
 （次の処理を継続）
 src/convert/convert2json.js
@@ -47,6 +50,7 @@ data/contents/board_data_yyyymmddhh24miss.json
 ↓
 public/board_data.json
 
+API + UIで構成?
 
 
 投稿JSON
@@ -56,7 +60,8 @@ public/board_data.json
       "email": "sweetyappi@hotmail.com",
       "area": ["東京", "新宿"],
       "age": "35〜44歳",
-      "sexuality": "完全女装",
+      "
+      ": "完全女装",
       "bodyShape": "普通",
       "message": "こんにちは。お会いできるといいな。\n肉体鍛えてるスポーツ系イクメンさん、学生さん、女性に飽きて新しい刺激を求めてる方入れば是非試してみてね！パンプアップ中で性欲抑えきれなくて吐口探してるノンケさん。もちろん無料ですが、プロフと写はよろしくね。都内、場所あり。",
       "images": [

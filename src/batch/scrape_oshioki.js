@@ -1,96 +1,92 @@
-const { Builder, By } = require('selenium-webdriver');
-const chrome = require('selenium-webdriver/chrome');
-const fs = require('fs').promises;
+const cheerio = require('cheerio');
+const fs = require('fs');
 const path = require('path');
+const glob = require('glob');
 
-async function scrapeData(htmlFileName) {
-  let driver;
+function getLatestHtmlFile() {
+  const htmlFiles = glob.sync(path.resolve(__dirname, '..', '..', 'data', 'source', 'html', 'oshioki_*.html'));
+  return htmlFiles.sort((a, b) => fs.statSync(b).mtime.getTime() - fs.statSync(a).mtime.getTime())[0];
+}
 
+function scrapeData(htmlFilePath) {
   try {
-    // Chromeをヘッドレスモードで設定
-    const options = new chrome.Options();
-    options.addArguments('--headless');
-    options.addArguments('--no-sandbox');
-    options.addArguments('--disable-dev-shm-usage');
+    // HTMLファイルを同期的に読み込む
+    const html = fs.readFileSync(htmlFilePath, 'utf8');
 
-    // WebDriverを初期化
-    driver = await new Builder()
-      .forBrowser('chrome')
-      .setChromeOptions(options)
-      .build();
-
-    // ローカルのHTMLファイルのパスを取得
-    const htmlPath = path.resolve(__dirname, '..', '..', 'data', 'source', 'html', htmlFileName);
-    const fileUrl = `file://${htmlPath}`;
-
-    // ローカルのHTMLファイルにアクセス
-    await driver.get(fileUrl);
-
-    // 全ての掲示板パネルを取得
-    const panels = await driver.findElements(By.css('.panel-board'));
+    // Cheerioを使用してHTMLをパース
+    const $ = cheerio.load(html);
 
     const results = [];
 
-    for (const panel of panels) {
+    // 全ての掲示板パネルを取得
+    $('.panel-board').each((index, element) => {
       const result = {};
 
       // 名前とメールアドレスを取得
-      const nameElement = await panel.findElement(By.css('.panel-head a'));
-      result.name = await nameElement.getText();
-      result.email = await nameElement.getAttribute('href').then(href => href.replace('mailto:', ''));
+      const nameElement = $(element).find('.panel-head a');
+      result.name = nameElement.text().trim();
+      result.email = nameElement.attr('href').replace('mailto:', '');
 
       // プロフィール情報を取得
-      const profElements = await panel.findElements(By.css('.panel-prof .pp_outer'));
-      for (const profElement of profElements) {
-        const key = await profElement.getText().then(text => text.split(':')[0].replace('[', '').trim());
-        const value = await profElement.findElement(By.css('.pp_inner')).getText();
-        result[key] = value;
-      }
+      const profileMap = {
+        '住所': 'address',
+        '年齢': 'age',
+        'ｽﾀｲﾙ': 'sexuality',
+        '体型': 'bodyShape'
+      };
+
+      $(element).find('.panel-prof .pp_outer').each((i, profElement) => {
+        const text = $(profElement).text();
+        const key = text.split(':')[0].replace('[', '').trim();
+        const value = $(profElement).find('.pp_inner').text().trim();
+        const mappedKey = profileMap[key] || key;
+        result[mappedKey] = value;
+      });
 
       // メッセージを取得
-      result.message = await panel.findElement(By.css('.panel-mess')).getText();
+      result.message = $(element).find('.panel-mess').text().trim();
 
       // 画像URLを取得（ベースURLを補完）
-      const imageElements = await panel.findElements(By.css('.panel-image-item a'));
-      result.images = await Promise.all(imageElements.map(async (el) => {
-        let href = await el.getAttribute('href');
+      result.images = $(element).find('.panel-image-item a').map((i, el) => {
+        let href = $(el).attr('href');
         // file:// プロトコルを除去し、ベースURLを補完
         href = href.replace(/^file:\/\//, '');
         return href.startsWith('/') ? `https://oshioki24.com${href}` : `https://oshioki24.com/${href}`;
-      }));
+      }).get();
 
-      // 投稿時間を取得
-      result.postTime = await panel.findElement(By.css('.panel-time')).getText();
-
-      // 同一投稿数を追加
-      result.同一投稿数 = 1;
+      // 投稿時間を取得し、余分な改行とスペースを除去
+      result.postTime = $(element).find('.panel-time').text().replace(/\s+/g, ' ').trim();
 
       results.push(result);
-    }
+    });
 
     // JSONファイルの名前と保存場所を設定
-    const jsonFileName = path.basename(htmlFileName, '.html') + '.json';
+    const jsonFileName = path.basename(htmlFilePath, '.html') + '.json';
     const jsonFilePath = path.resolve(__dirname, '..', '..', 'data', 'source', 'json', jsonFileName);
 
-    // 結果をJSONファイルに保存
-    await fs.writeFile(jsonFilePath, JSON.stringify(results, null, 2));
+    // 結果をJSONファイルに同期的に保存
+    fs.writeFileSync(jsonFilePath, JSON.stringify(results, null, 2));
     console.log(`データが正常に保存されました: ${jsonFilePath}`);
 
   } catch (error) {
     console.error('エラーが発生しました:', error);
-  } finally {
-    if (driver) {
-      await driver.quit();
-    }
   }
 }
 
 // コマンドライン引数からHTMLファイル名を取得
-const htmlFileName = process.argv[2];
+let htmlFilePath = process.argv[2];
 
-if (!htmlFileName) {
-  console.error('HTMLファイル名を引数として指定してください。');
-  process.exit(1);
+if (!htmlFilePath) {
+  // ファイル名が指定されていない場合、最新のファイルを使用
+  htmlFilePath = getLatestHtmlFile();
+  if (!htmlFilePath) {
+    console.error('HTMLファイルが見つかりません。');
+    process.exit(1);
+  }
+  console.log(`最新のHTMLファイルを使用します: ${htmlFilePath}`);
+} else {
+  // 指定されたファイル名のパスを解決
+  htmlFilePath = path.resolve(__dirname, '..', '..', 'data', 'source', 'html', htmlFilePath);
 }
 
-scrapeData(htmlFileName);
+scrapeData(htmlFilePath);
