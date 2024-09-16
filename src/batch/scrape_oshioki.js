@@ -8,6 +8,15 @@ function getLatestHtmlFile() {
   return htmlFiles.sort((a, b) => fs.statSync(b).mtime.getTime() - fs.statSync(a).mtime.getTime())[0];
 }
 
+function formatPostTime(dateTimeString) {
+  const match = dateTimeString.match(/(\d{4})\.(\d{2})\.(\d{2})\((\w+)\) (\d{2}:\d{2})/);
+  if (match) {
+    const [, year, month, day, dayOfWeek, time] = match;
+    return `${year}-${month}-${day}(${dayOfWeek}) ${time}`;
+  }
+  return dateTimeString; // フォーマットが一致しない場合は元の文字列を返す
+}
+
 function scrapeData(htmlFilePath) {
   try {
     // HTMLファイルを同期的に読み込む
@@ -54,8 +63,9 @@ function scrapeData(htmlFilePath) {
         return href.startsWith('/') ? `https://oshioki24.com${href}` : `https://oshioki24.com/${href}`;
       }).get();
 
-      // 投稿時間を取得し、余分な改行とスペースを除去
-      result.postTime = $(element).find('.panel-time').text().replace(/\s+/g, ' ').trim();
+      // 投稿時間を取得し、フォーマットを変更
+      const rawPostTime = $(element).find('.panel-time').text().trim();
+      result.postTime = formatPostTime(rawPostTime);
 
       results.push(result);
     });
