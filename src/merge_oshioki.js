@@ -22,6 +22,8 @@ function mergeData(boardData, oshiokiData) {
                 // oshiokiの方が新しい場合、上書きしてカウントアップ
                 Object.assign(existingItem, oshiokiItem);
                 existingItem.numberOfSimilarPosts = (existingItem.numberOfSimilarPosts || 0) + 1;
+                // sourceも更新
+                existingItem.source = oshiokiItem.source;
             }
             // oshiokiの方が古い場合は何もしない
         } else {

@@ -22,6 +22,8 @@ function mergeData(boardData, kanajoData) {
                 // kanajoの方が新しい場合、上書きしてカウントアップ
                 Object.assign(existingItem, kanajoItem);
                 existingItem.numberOfSimilarPosts = (existingItem.numberOfSimilarPosts || 0) + 1;
+                // sourceも更新
+                existingItem.source = kanajoItem.source;
             }
             // kanajoの方が古い場合は何もしない
         } else {

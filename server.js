@@ -88,7 +88,7 @@ app.get('/', async (req, res) => {
                     <div class="post-header">
                         <span class="post-name">${post.name}</span>
                         <span class="post-email">&lt;${post.email}&gt;</span>
-                        <span class="post-count">同一投稿数: ${post.numberOfSimilarPosts}</span>
+                        <span class="post-count">類似投稿数: ${post.numberOfSimilarPosts}</span>
                     </div>
                     <div class="post-info">
                         地域: ${post.area || '不明'} | 年齢: ${post.age || '不明'} | 性別: ${post.sexuality || '不明'} | 体型: ${post.bodyShape || '不明'}

@@ -44,8 +44,8 @@ data/contents/board_data_yyyymmddhh24miss.json
 
 （前の処理から継続）
 最新のboard_data_yyyymmddhh24miss.jsonから
-グローバルブラックリストの投稿を除き、publicを上書き
 古い記事を削除
+グローバルブラックリストの投稿を除き、publicを上書き
 published.js
 data/contents/board_data_yyyymmddhh24miss.json
 ↓

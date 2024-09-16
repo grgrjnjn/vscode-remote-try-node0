@@ -55,7 +55,8 @@ function processHtmlFile(htmlFilePath) {
         sexuality: null,
         age: null,
         area: null,
-        bodyShape: null // 新しく追加した項目
+        bodyShape: null,
+        source: '<a href="https://kanajo.com/public/thread/index?id=1">カナジョ 即ヤリ東日本</a>' // 新しく追加した項目
       };
 
       // プロフィール情報を抽出

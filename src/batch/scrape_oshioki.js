@@ -67,6 +67,9 @@ function scrapeData(htmlFilePath) {
       const rawPostTime = $(element).find('.panel-time').text().trim();
       result.postTime = formatPostTime(rawPostTime);
 
+      // source項目を追加
+      result.source = '<a href="https://oshioki24.com/board/search/3/13/1/">おしおき関東掲示板</a>';
+
       results.push(result);
     });
 
