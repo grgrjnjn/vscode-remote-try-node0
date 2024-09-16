@@ -1,10 +1,11 @@
+
 const cheerio = require('cheerio');
 const fs = require('fs');
 const path = require('path');
 const glob = require('glob');
 
 function getLatestHtmlFile() {
-  const htmlFiles = glob.sync(path.resolve(__dirname, '..', '..', 'data', 'source', 'html', 'oshioki_*.html'));
+  const htmlFiles = glob.sync(path.resolve(__dirname, '..', 'data', 'source', 'html', 'oshioki_*.html'));
   return htmlFiles.sort((a, b) => fs.statSync(b).mtime.getTime() - fs.statSync(a).mtime.getTime())[0];
 }
 
@@ -53,7 +54,7 @@ function scrapeData(htmlFilePath) {
       });
 
       // メッセージを取得
-      result.message = $(element).find('.panel-mess').text().trim();
+      result.message = $(element).find('.panel-mess').html().trim();
 
       // 画像URLを取得（ベースURLを補完）
       result.images = $(element).find('.panel-image-item a').map((i, el) => {
@@ -75,7 +76,7 @@ function scrapeData(htmlFilePath) {
 
     // JSONファイルの名前と保存場所を設定
     const jsonFileName = path.basename(htmlFilePath, '.html') + '.json';
-    const jsonFilePath = path.resolve(__dirname, '..', '..', 'data', 'source', 'json', jsonFileName);
+    const jsonFilePath = path.resolve(__dirname, '..', 'data', 'source', 'json', jsonFileName);
 
     // 結果をJSONファイルに同期的に保存
     fs.writeFileSync(jsonFilePath, JSON.stringify(results, null, 2));
@@ -99,7 +100,7 @@ if (!htmlFilePath) {
   console.log(`最新のHTMLファイルを使用します: ${htmlFilePath}`);
 } else {
   // 指定されたファイル名のパスを解決
-  htmlFilePath = path.resolve(__dirname, '..', '..', 'data', 'source', 'html', htmlFilePath);
+  htmlFilePath = path.resolve(__dirname, '..', 'data', 'source', 'html', htmlFilePath);
 }
 
 scrapeData(htmlFilePath);

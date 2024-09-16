@@ -107,7 +107,7 @@ app.get('/', async (req, res) => {
                     <div class="post-info">
                         地域: ${escapeHtml(post.area || '不明')} | 年齢: ${escapeHtml(post.age || '不明')} | 性別: ${escapeHtml(post.sexuality || '不明')} | 体型: ${escapeHtml(post.bodyShape || '不明')}
                     </div>
-                    <div class="post-message">${escapeHtml(post.message).replace(/\n/g, '<br>')}</div>
+                    <div class="post-message">${post.message}</div>
                     <div class="post-images">
                         ${post.images.map(img => `<img src="${escapeHtml(img)}" alt="投稿画像">`).join('')}
                     </div>
