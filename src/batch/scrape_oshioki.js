@@ -38,7 +38,7 @@ function scrapeData(htmlFilePath) {
 
       // プロフィール情報を取得
       const profileMap = {
-        '住所': 'address',
+        '住所': 'area',
         '年齢': 'age',
         'ｽﾀｲﾙ': 'sexuality',
         '体型': 'bodyShape'
