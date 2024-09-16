@@ -1,3 +1,8 @@
+#TODO: カナジョの画像が表示されないので、jsonを元にl画像のダウンロード、縮小、JSONの画像パス変更をする、新たなJSONとして保存
+# 画像をどこにダウンロードするか
+
+
+
 （cronなどで）定期実行
 アクセス間隔をランダム化して、プラグイン（HTML取得）を実行、エラー時はリトライする
 メールアドレス取得のサイトごとの特殊処理を含む
@@ -44,7 +49,7 @@ data/contents/board_data_yyyymmddhh24miss.json
 
 （前の処理から継続）
 最新のboard_data_yyyymmddhh24miss.jsonから
-古い記事を削除
+24時間以上経過した古い記事を削除
 グローバルブラックリストの投稿を除き、publicを上書き
 published.js
 data/contents/board_data_yyyymmddhh24miss.json
@@ -56,7 +61,7 @@ API + UIで構成?
 
 
 server.js
-改行が反映していない？
+
 
 投稿JSON
 
