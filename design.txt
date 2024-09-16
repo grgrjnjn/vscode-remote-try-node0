@@ -45,6 +45,7 @@ data/contents/board_data_yyyymmddhh24miss.json
 （前の処理から継続）
 最新のboard_data_yyyymmddhh24miss.jsonから
 グローバルブラックリストの投稿を除き、publicを上書き
+古い記事を削除
 published.js
 data/contents/board_data_yyyymmddhh24miss.json
 ↓
@@ -52,6 +53,10 @@ public/board_data.json
 
 API + UIで構成?
 
+
+
+server.js
+改行が反映していない？
 
 投稿JSON
 

@@ -6,6 +6,15 @@ const app = express();
 const PORT = 3000;
 const HOST = '0.0.0.0';
 
+function escapeHtml(unsafe) {
+    return unsafe
+         .replace(/&/g, "&amp;")
+         .replace(/</g, "&lt;")
+         .replace(/>/g, "&gt;")
+         .replace(/"/g, "&quot;")
+         .replace(/'/g, "&#039;");
+}
+
 app.get('/', async (req, res) => {
   try {
     const filePath = path.join(__dirname, 'public', 'board_data.json');
@@ -86,18 +95,18 @@ app.get('/', async (req, res) => {
             ${jsonData.map(post => `
                 <div class="post">
                     <div class="post-header">
-                        <span class="post-name">${post.name}</span>
-                        <span class="post-email">&lt;${post.email}&gt;</span>
-                        <span class="post-count">同一投稿数: ${post.同一投稿数}</span>
+                        <span class="post-name">${escapeHtml(post.name)}</span>
+                        <span class="post-email">&lt;${escapeHtml(post.email)}&gt;</span>
+                        <span class="post-count">類似投稿数: ${post.numberOfSimilarPosts}</span>
                     </div>
                     <div class="post-info">
-                        住所: ${post.住所} | 年齢: ${post.年齢} | スタイル: ${post.ｽﾀｲﾙ} | 体型: ${post.体型}
+                        地域: ${escapeHtml(post.area || '不明')} | 年齢: ${escapeHtml(post.age || '不明')} | 性別: ${escapeHtml(post.sexuality || '不明')} | 体型: ${escapeHtml(post.bodyShape || '不明')}
                     </div>
-                    <div class="post-message">${post.message}</div>
+                    <div class="post-message">${escapeHtml(post.message).replace(/\n/g, '<br>')}</div>
                     <div class="post-images">
-                        ${post.images.map(img => `<img src="${img}" alt="投稿画像">`).join('')}
+                        ${post.images.map(img => `<img src="${escapeHtml(img)}" alt="投稿画像">`).join('')}
                     </div>
-                    <div class="post-time">${post.postTime}</div>
+                    <div class="post-time">${escapeHtml(post.postTime)}</div>
                 </div>
             `).join('')}
         </div>
