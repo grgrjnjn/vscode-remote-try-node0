@@ -6,6 +6,10 @@ const app = express();
 const PORT = 3000;
 const HOST = '0.0.0.0';
 
+// 静的ファイルの提供を設定
+app.use(express.static('public'));
+app.use('/image', express.static(path.join(__dirname, 'public', 'image')));
+
 function escapeHtml(unsafe) {
     return unsafe
          .replace(/&/g, "&amp;")
