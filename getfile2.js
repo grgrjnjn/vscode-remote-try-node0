@@ -1,3 +1,5 @@
+// 画像の取得とリサイズ機能
+
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
