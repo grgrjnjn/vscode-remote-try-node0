@@ -1,3 +1,4 @@
+// 画像URLの取得で、リンク先大画像があればそちら、なければ小画像をURLとして採用
 const cheerio = require('cheerio');
 const fs = require('fs');
 const path = require('path');

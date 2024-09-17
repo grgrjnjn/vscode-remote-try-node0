@@ -1,3 +1,4 @@
+// HTML取得時にリンク先のメールアドレスを取得
 const { Builder, By, until } = require('selenium-webdriver');
 const chrome = require('selenium-webdriver/chrome');
 const fs = require('fs').promises;
