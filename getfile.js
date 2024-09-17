@@ -36,7 +36,8 @@ function downloadImage(url, outputPath) {
 }
 
 // 使用例
-const imageUrl = 'https://oshioki24.com/board/view/sIP1cFvO6LmfaZ0ip7Sgw8B3gGL4Wszl';
+// const imageUrl = 'https://oshioki24.com/board/view/sIP1cFvO6LmfaZ0ip7Sgw8B3gGL4Wszl';
+const imageUrl = 'https://kanajo.com/public/thread/img/?id=9320603&type=comment&no=1';
 const outputDirectory = '/workspaces/vscode-remote-try-node';
 
 downloadImage(imageUrl, outputDirectory);

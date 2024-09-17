@@ -1,9 +1,36 @@
+// うまくいっているように見える！
+
+// ↓で生成したわけじゃないけどメモがわりに残しておく
+
+// あなたは優秀なプログラマです。
+// 私はLinux上で、node.jsでプログラミングしている。
+
+// data/source/json/kanajo_*json の最新のファイルを読み込む。「JSON（抜粋）」を参照。
+// 「images」の値が、「https://kanajo.com/public/thread/img/?id=*&type=comment&no=*」のパターンの時は、以下の処理をする。
+// 例）
+// "https://kanajo.com/public/thread/img/?id=9320735&type=comment&no=1"
+
+// リンク先のページで画像が表示されている。
+// 例）
+// <img width="80%" src="http://kanajo.com/public/assets/img/bbs/00000001/ed938cfe9d93fd22fd79ea23c443a5d9.jpg?1726547483" alt="" />   
+// この画像をファイルとして data/source/image/ に保存する。
+// ファイル名は、URL中のid（id=9320735の部分）とno（no=1の部分）を用いて「kanajo_{id}-{no}.拡張子」とする。
+// 拡張子はMIMEを適切に判断して付ける。
+
+// 画像を保存した「images」の値は、 data/source/image/ファイル名 に変更する。
+
+// JSONは、上書き保存する。
+// これらはバッチ処理で行うため不要な非同期処理は行わずシンプルに実装する。
+// 全てのコードを示せ。
+
+
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
 const http = require('http');
-const url = require('url');
+const cheerio = require('cheerio');
 const mime = require('mime-types');
+const url = require('url');
 
 function getLatestFile(dir, prefix) {
     const files = fs.readdirSync(dir).filter(file => file.startsWith(prefix));
@@ -11,9 +38,12 @@ function getLatestFile(dir, prefix) {
 }
 
 function downloadImage(imageUrl, outputPath) {
-    const protocol = url.parse(imageUrl).protocol === 'https:' ? https : http;
     return new Promise((resolve, reject) => {
-        protocol.get(imageUrl, (response) => {
+        const protocol = url.parse(imageUrl).protocol === 'https:' ? https : http;
+        protocol.get(imageUrl, {
+            followAllRedirects: true,
+            maxRedirects: 5
+        }, (response) => {
             if (response.statusCode === 200) {
                 const contentType = response.headers['content-type'];
                 const extension = mime.extension(contentType) || 'jpg';
@@ -24,6 +54,11 @@ function downloadImage(imageUrl, outputPath) {
                     fileStream.close();
                     resolve(filePath);
                 });
+            } else if (response.statusCode === 301 || response.statusCode === 302) {
+                // リダイレクトを処理
+                downloadImage(response.headers.location, outputPath)
+                    .then(resolve)
+                    .catch(reject);
             } else {
                 reject(new Error(`Failed to download image: ${response.statusCode}`));
             }
@@ -36,27 +71,50 @@ function processImages(data, outputDir) {
         if (item.images && Array.isArray(item.images)) {
             item.images = item.images.map(imageUrl => {
                 if (imageUrl.startsWith('https://kanajo.com/public/thread/img/')) {
-                    const parsedUrl = url.parse(imageUrl, true);
-                    const id = parsedUrl.query.id;
-                    if (id) {
-                        const outputPath = path.join(outputDir, `kanajo_${id}`);
-                        try {
-                            const filePath = downloadImage(imageUrl, outputPath);
-                            return path.relative(process.cwd(), filePath);
-                        } catch (error) {
-                            console.error(`Error downloading image: ${error.message}`);
-                            return imageUrl;
-                        }
+                    const urlParams = new URL(imageUrl).searchParams;
+                    const id = urlParams.get('id');
+                    const no = urlParams.get('no');
+                    if (id && no) {
+                        const outputPath = path.join(outputDir, `kanajo_${id}-${no}`);
+                        return new Promise((resolve, reject) => {
+                            const protocol = url.parse(imageUrl).protocol === 'https:' ? https : http;
+                            protocol.get(imageUrl, {
+                                followAllRedirects: true,
+                                maxRedirects: 5
+                            }, (response) => {
+                                let data = '';
+                                response.on('data', (chunk) => {
+                                    data += chunk;
+                                });
+                                response.on('end', () => {
+                                    const $ = cheerio.load(data);
+                                    const imgSrc = $('img').attr('src');
+                                    if (imgSrc) {
+                                        downloadImage(imgSrc, outputPath)
+                                            .then(filePath => resolve(path.relative(process.cwd(), filePath)))
+                                            .catch(reject);
+                                    } else {
+                                        resolve(imageUrl);
+                                    }
+                                });
+                            }).on('error', reject);
+                        });
                     }
                 }
-                return imageUrl;
+                return Promise.resolve(imageUrl);
             });
+            item.images = Promise.all(item.images);
         }
     });
-    return data;
+    return Promise.all(data.map(async item => {
+        if (item.images) {
+            item.images = await item.images;
+        }
+        return item;
+    }));
 }
 
-function main() {
+async function main() {
     const sourceDir = path.join(__dirname, '..', 'data', 'source', 'json');
     const latestFile = getLatestFile(sourceDir, 'kanajo_');
     const inputPath = path.join(sourceDir, latestFile);
@@ -67,10 +125,10 @@ function main() {
     }
 
     const data = JSON.parse(fs.readFileSync(inputPath, 'utf8'));
-    const processedData = processImages(data, outputDir);
+    const processedData = await processImages(data, outputDir);
 
     fs.writeFileSync(inputPath, JSON.stringify(processedData, null, 2));
     console.log(`Processed and saved: ${inputPath}`);
 }
 
-main();
+main().catch(console.error);

@@ -17,6 +17,7 @@
     "glob": "^11.0.0",
     "image-hash": "^5.3.2",
     "kuromoji": "^0.1.2",
+    "mime-types": "^2.1.35",
     "natural": "^8.0.1",
     "phash-js": "^0.3.0",
     "selenium-webdriver": "^4.24.0",
