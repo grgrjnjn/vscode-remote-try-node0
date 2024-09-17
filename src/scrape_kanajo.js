@@ -36,11 +36,19 @@ function processHtmlFile(htmlFilePath) {
         name: $('a[href^="mailto:"]').text(),
         email: $('a[href^="mailto:"]').attr('href').replace('mailto:', ''),
         images: (() => {
-          const linkedImages = $('a[href^="https://kanajo.com/public/thread/img/"]').map((i, el) => $(el).attr('href')).get();
-          if (linkedImages.length > 0) {
-            return linkedImages;
+          const images = [];
+          $('a[href^="https://kanajo.com/public/thread/img/"]').each((i, el) => {
+            images.push($(el).attr('href'));
+          });
+          if (images.length === 0) {
+            $('img').each((i, el) => {
+              const src = $(el).attr('src');
+              if (src && src.startsWith('http')) {
+                images.push(src);
+              }
+            });
           }
-          return $('img').map((i, el) => $(el).attr('src')).get().filter(src => src && src.startsWith('http'));
+          return images;
         })(),
         message: (() => {
           const fullText = $('font[size="4"]').text();
