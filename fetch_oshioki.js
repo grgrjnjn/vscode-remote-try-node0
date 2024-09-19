@@ -1,8 +1,14 @@
 
 // JSDOMの設定でvirtualConsoleオプションを使用して、エラーを抑制しつつ実行を続ける
+// ES modules形式
 
-const { JSDOM, VirtualConsole } = require('jsdom');
-const fs = require('fs').promises;
+
+// const { JSDOM, VirtualConsole } = require('jsdom');
+// const fs = require('fs').promises;
+
+import { JSDOM, VirtualConsole } from 'jsdom';
+import { promises as fs } from 'fs';
+
 
 const url = 'https://oshioki24.com/board/search/3/13/0/1';
 const outputFile = 'output.html';
