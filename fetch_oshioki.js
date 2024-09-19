@@ -1,3 +1,6 @@
+
+// JSDOMの設定でvirtualConsoleオプションを使用して、エラーを抑制しつつ実行を続ける
+
 const { JSDOM, VirtualConsole } = require('jsdom');
 const fs = require('fs').promises;
 

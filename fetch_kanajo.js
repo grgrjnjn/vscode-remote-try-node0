@@ -1,14 +1,15 @@
 // リンク先のメールアドレスを取得してHTMLを書き換える
 // シンプルな実装でgood
+// ES modules形式
 
 // TODO:
 // 連続10以上のアクセスをすることになるので、間隔を開ける？
 // 開始時間ばいつもピッタリにならないようにランダムなスリープを入れる？
 
 
-const fs = require('fs').promises;
-const path = require('path');
-const { JSDOM } = require('jsdom');
+import { promises as fs } from 'fs';
+import path from 'path';
+import { JSDOM } from 'jsdom';
 
 const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36';
 const THREAD_URL = 'https://kanajo.com/public/thread/index?id=1';

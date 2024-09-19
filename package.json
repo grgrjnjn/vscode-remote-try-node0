@@ -5,6 +5,7 @@
   "author": "First Last <first.last@example.com>",
   "main": "server.js",
   "private": true,
+  "type": "module",
   "scripts": {
     "start": "node server.js"
   },
