@@ -1,5 +1,4 @@
-//do_plugins.js
-
+// do_plugins.js
 import { promises as fs } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -7,41 +6,28 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-async function loadPlugins(pluginsDir) {
+async function runPlugins(pluginsDir) {
   const pluginFiles = await fs.readdir(pluginsDir);
-  return Promise.all(
-    pluginFiles.map(async (file) => {
-      if (path.extname(file) === '.js') {
-        const pluginPath = path.join(pluginsDir, file);
-        return import(pluginPath);
-      }
-    })
-  );
-}
+  const jsFiles = pluginFiles.filter(file => /\.js$/.test(file));
 
-async function executePlugins(plugins) {
-  const results = await Promise.all(
-    plugins.map(async (plugin) => {
-      if (plugin && typeof plugin.run === 'function') {
-        try {
-          return await plugin.run();
-        } catch (error) {
-          console.error(`Error executing plugin: ${error.message}`);
-          return null;
-        }
-      }
-    })
-  );
+  const results = await Promise.all(jsFiles.map(async (file) => {
+    try {
+      const pluginPath = path.join(pluginsDir, file);
+      const plugin = await import(pluginPath);
+      return await plugin.run();
+    } catch (error) {
+      console.error(`Error in plugin ${file}: ${error.message}`);
+      return null;
+    }
+  }));
+
   return results.filter(result => result !== null);
 }
 
 async function main() {
   const pluginsDir = path.join(__dirname, 'plugins');
-  
   try {
-    const plugins = await loadPlugins(pluginsDir);
-    const results = await executePlugins(plugins);
-    
+    const results = await runPlugins(pluginsDir);
     console.log('All plugins executed. Results:', results);
   } catch (error) {
     console.error('Error:', error);
