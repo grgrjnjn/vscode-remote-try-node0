@@ -1,32 +1,11 @@
+// plugins/fetch_oshioki_plugin.js
 
 // JSDOMの設定でvirtualConsoleオプションを使用して、エラーを抑制しつつ実行を続ける
 // ES modules形式
 
 
-// const { JSDOM, VirtualConsole } = require('jsdom');
-// const fs = require('fs').promises;
-
-
-fetch_oshioki.jsをプラグインにしてください。
-処理内容が変更にならないように慎重に対応お願いします。処理内容は変更しないでください。
-プラグイン化したコード全体を示してください。
-
-
-//plugins/plugin_example1.js
-export function run() {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      console.log('Example plugin 1 executed');
-      resolve('Example plugin 1 result');
-    }, 1000);
-  });
-}
-
-
-// fetch_oshioki.js
 import { JSDOM, VirtualConsole } from 'jsdom';
 import { promises as fs } from 'fs';
-
 
 const url = 'https://oshioki24.com/board/search/3/13/0/1';
 const outputFile = 'oshioki.html';
@@ -60,9 +39,26 @@ async function fetchAndSaveHTML() {
 
     // リソースを解放
     dom.window.close();
+
+    return `HTMLが保存されました: ${outputFile}`;
   } catch (error) {
     console.error('エラーが発生しました:', error);
+    throw error;
   }
 }
 
-fetchAndSaveHTML();
+export async function run() {
+  try {
+    const result = await fetchAndSaveHTML();
+    return result;
+  } catch (error) {
+    return `エラーが発生しました: ${error.message}`;
+  }
+}
+
+// 単体実行用のコード
+if (import.meta.url === `file://${process.argv[1]}`) {
+  run()
+    .then(result => console.log(result))
+    .catch(error => console.error('エラー:', error));
+}
