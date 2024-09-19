@@ -1,70 +1,61 @@
+// リンク先のメールアドレスを取得してHTMLを書き換える
+// シンプルな実装でgood
+
+// TODO:
+// 連続10以上のアクセスをすることになるので、間隔を開ける？
+// 開始時間ばいつもピッタリにならないようにランダムなスリープを入れる？
+
+
 const fs = require('fs').promises;
 const path = require('path');
+const { JSDOM } = require('jsdom');
 
-// URLを引数に取り、Webサイトにアクセスし、HTMLを返す関数
+const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36';
+const THREAD_URL = 'https://kanajo.com/public/thread/index?id=1';
+const OUTPUT_FILE = 'output.html';
+const MAIL_LINK_PATTERN = /https:\/\/kanajo\.com\/public\/mail\/\?type=comment&id=\d+/;
+
 async function fetchHTML(url) {
-  try {
-    const fetchOptions = {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+  const response = await fetch(url, {
+    headers: { 'User-Agent': USER_AGENT }
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  return response.text();
+}
+
+async function rewriteHTML(html) {
+  const dom = new JSDOM(html);
+  const links = dom.window.document.querySelectorAll('a');
+
+  for (const link of links) {
+    if (MAIL_LINK_PATTERN.test(link.href)) {
+      const commentHtml = await fetchHTML(link.href);
+      const commentDom = new JSDOM(commentHtml);
+      const emailLink = commentDom.window.document.querySelector('a[href^="mailto:"]');
+      if (emailLink) {
+        link.outerHTML = emailLink.outerHTML;
       }
-    };
-
-    const response = await fetch(url, fetchOptions);
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    return await response.text();
-  } catch (error) {
-    console.error('HTMLの取得中にエラーが発生しました:', error);
-    throw error;
-  }
-}
-
-// HTMLを書き換える関数
-async function RewriteHTML(html) {
-  const regex = /<a href="https:\/\/kanajo\.com\/public\/mail\/\?type=comment&id=(\d+)">/g;
-  let match;
-  let rewrittenHTML = html;
-
-  while ((match = regex.exec(html)) !== null) {
-    const commentUrl = match[0].slice(9, -2);
-    const commentHtml = await fetchHTML(commentUrl);
-    const emailRegex = /<a href="mailto:([^"]+)">/;
-    const emailMatch = commentHtml.match(emailRegex);
-
-    if (emailMatch) {
-      const emailLink = emailMatch[0];
-      rewrittenHTML = rewrittenHTML.replace(match[0], emailLink);
     }
   }
 
-  return rewrittenHTML;
+  return dom.serialize();
 }
 
-// HTMLと、相対パスを含むファイル名を引数に取り、HTMLをファイルとして保存する関数
 async function saveHTML(html, fileName) {
-  try {
-    const fullPath = path.resolve(fileName);
-    await fs.writeFile(fullPath, html);
-    console.log(`HTMLが保存されました: ${fullPath}`);
-  } catch (error) {
-    console.error('HTMLの保存中にエラーが発生しました:', error);
-    throw error;
-  }
+  const fullPath = path.resolve(fileName);
+  await fs.writeFile(fullPath, html);
+  console.log(`HTMLが保存されました: ${fullPath}`);
 }
 
-// 使用例
 async function main() {
-  const url = 'https://kanajo.com/public/thread/index?id=1';
-  const outputFileName = 'output.html';
-
   try {
-    const html = await fetchHTML(url);
-    const rewrittenHTML = await RewriteHTML(html);
-    await saveHTML(rewrittenHTML, outputFileName);
+    const html = await fetchHTML(THREAD_URL);
+    const rewrittenHTML = await rewriteHTML(html);
+    await saveHTML(rewrittenHTML, OUTPUT_FILE);
   } catch (error) {
     console.error('処理中にエラーが発生しました:', error);
   }
