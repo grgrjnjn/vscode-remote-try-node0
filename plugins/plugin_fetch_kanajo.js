@@ -1,3 +1,5 @@
+// plugins/fetch_kanajo_plugin.js
+
 // リンク先のメールアドレスを取得してHTMLを書き換える
 // シンプルな実装でgood
 // ES modules形式
@@ -6,22 +8,7 @@
 // 連続10以上のアクセスをすることになるので、間隔を開ける？
 // 開始時間ばいつもピッタリにならないようにランダムなスリープを入れる？
 
-fetch_kanajo.jsをプラグインにしてください。
-処理内容が変更にならないように慎重に対応お願いします。処理内容は変更しないでください。
-プラグイン化したコード全体を示してください。
 
-
-//plugins/plugin_example1.js
-export function run() {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      console.log('Example plugin 1 executed');
-      resolve('Example plugin 1 result');
-    }, 1000);
-  });
-}
-
-// fetch_kanajo.js
 import { promises as fs } from 'fs';
 import path from 'path';
 import { JSDOM } from 'jsdom';
@@ -67,14 +54,21 @@ async function saveHTML(html, fileName) {
   console.log(`HTMLが保存されました: ${fullPath}`);
 }
 
-async function main() {
+export async function run() {
   try {
     const html = await fetchHTML(THREAD_URL);
     const rewrittenHTML = await rewriteHTML(html);
     await saveHTML(rewrittenHTML, OUTPUT_FILE);
+    return `Kanajo HTMLが保存されました: ${OUTPUT_FILE}`;
   } catch (error) {
     console.error('処理中にエラーが発生しました:', error);
+    return `エラー: ${error.message}`;
   }
 }
 
-main();
+// 単体実行用のコード
+if (import.meta.url === `file://${process.argv[1]}`) {
+    run()
+      .then(result => console.log(result))
+      .catch(error => console.error('エラー:', error));
+  }
