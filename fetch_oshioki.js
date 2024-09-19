@@ -6,12 +6,13 @@
 // const { JSDOM, VirtualConsole } = require('jsdom');
 // const fs = require('fs').promises;
 
+
 import { JSDOM, VirtualConsole } from 'jsdom';
 import { promises as fs } from 'fs';
 
 
 const url = 'https://oshioki24.com/board/search/3/13/0/1';
-const outputFile = 'output.html';
+const outputFile = 'oshioki.html';
 
 async function fetchAndSaveHTML() {
   try {
@@ -31,7 +32,7 @@ async function fetchAndSaveHTML() {
     });
 
     // さらに時間を置いて待つ（必要に応じて調整）
-    await new Promise(resolve => setTimeout(resolve, 10000));
+    await new Promise(resolve => setTimeout(resolve, 5000));  // 5秒
 
     // 動的に生成されたHTMLを取得
     const html = dom.serialize();
