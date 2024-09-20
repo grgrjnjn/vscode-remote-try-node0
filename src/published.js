@@ -4,8 +4,14 @@
 // 正しく動作しているのかは未確認、とりあえず動く
 
 
-const fs = require('fs');
-const path = require('path');
+// CoomonJS形式からES modules形式に変換してください。
+
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 function moveImage(sourcePath, destPath) {
     try {
