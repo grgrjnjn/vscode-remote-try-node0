@@ -1,20 +1,24 @@
 // 画像をダウンロードして、JSONも修正
 // リサイズ機能追加
 
-const fs = require('fs');
-const path = require('path');
-const https = require('https');
-const http = require('http');
-const cheerio = require('cheerio');
-const mime = require('mime-types');
-const url = require('url');
-const sharp = require('sharp');
 
+// CoomonJS形式からES modules形式に変換してください。
+// 読み込むJSONファイルは、data/source/json/kanajo_*の最新ファイルではなく、data/source/json/kanajo.jsonと決め打ちに変更。
+// それ以外の処理は変更しません。処理内容が変更しないようにお願いします。
+// 修正後の全てのコードを示してください。
 
-function getLatestFile(dir, prefix) {
-    const files = fs.readdirSync(dir).filter(file => file.startsWith(prefix));
-    return files.sort().pop();
-}
+import fs from 'fs';
+import path from 'path';
+import https from 'https';
+import http from 'http';
+import { load } from 'cheerio';
+import mime from 'mime-types';
+import url from 'url';
+import sharp from 'sharp';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 function downloadImage(imageUrl, outputPath) {
   return new Promise((resolve, reject) => {
@@ -89,7 +93,7 @@ function processImages(data, outputDir) {
                                     data += chunk;
                                 });
                                 response.on('end', () => {
-                                    const $ = cheerio.load(data);
+                                    const $ = load(data);
                                     const imgSrc = $('img').attr('src');
                                     if (imgSrc) {
                                         downloadImage(imgSrc, outputPath)
@@ -118,18 +122,17 @@ function processImages(data, outputDir) {
 
 async function main() {
     const sourceDir = path.join(__dirname, '..', 'data', 'source', 'json');
-    const latestFile = getLatestFile(sourceDir, 'kanajo_');
-    const inputPath = path.join(sourceDir, latestFile);
+    const inputPath = path.join(sourceDir, 'kanajo.json');
     const outputDir = path.join(__dirname, '..', 'data', 'source', 'image');
 
     if (!fs.existsSync(outputDir)) {
         fs.mkdirSync(outputDir, { recursive: true });
     }
 
-    const data = JSON.parse(fs.readFileSync(inputPath, 'utf8'));
+    const data = JSON.parse(await fs.promises.readFile(inputPath, 'utf8'));
     const processedData = await processImages(data, outputDir);
 
-    fs.writeFileSync(inputPath, JSON.stringify(processedData, null, 2));
+    await fs.promises.writeFile(inputPath, JSON.stringify(processedData, null, 2));
     console.log(`Processed and saved: ${inputPath}`);
 }
 
