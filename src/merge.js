@@ -1,30 +1,40 @@
-const fs = require('fs').promises;
-const fsSync = require('fs');
-const path = require('path');
-const glob = require('glob');
+// CoomonJS形式からES modules形式に変換してください。
+// globはES modules形式に対応していないので使うのをやめます。別のものを提案してください。
 
-async function getLatestFile(pattern) {
-    const files = glob.sync(pattern);
-    const stats = await Promise.all(files.map(file => fs.stat(file)));
-    const sortedFiles = files.map((file, index) => ({ file, mtime: stats[index].mtime }))
-                            .sort((a, b) => b.mtime.getTime() - a.mtime.getTime());
+
+import { promises as fs } from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+async function getLatestFile(directory, extension) {
+    const files = await fs.readdir(directory);
+    const filteredFiles = files.filter(file => path.extname(file) === extension);
+    const stats = await Promise.all(filteredFiles.map(file => fs.stat(path.join(directory, file))));
+    const sortedFiles = filteredFiles.map((file, index) => ({ file, mtime: stats[index].mtime }))
+                                     .sort((a, b) => b.mtime.getTime() - a.mtime.getTime());
     return sortedFiles[0]?.file;
 }
 
 async function mergeAndProcessData() {
     try {
+        const boardDataDir = path.join(__dirname, '..', 'data', 'contents');
+        const sourceDataDir = path.join(__dirname, '..', 'data', 'source', 'json');
+
         // 最新の board_data_*.json ファイルを取得
-        const boardDataFile = await getLatestFile(path.join(__dirname, '..', 'data', 'contents', 'board_data_*.json'));
+        const boardDataFile = await getLatestFile(boardDataDir, '.json');
         // 最新の data/source/json/*.json ファイルを取得
-        const sourceDataFile = await getLatestFile(path.join(__dirname, '..', 'data', 'source', 'json', '*.json'));
+        const sourceDataFile = await getLatestFile(sourceDataDir, '.json');
 
         if (!boardDataFile || !sourceDataFile) {
             console.error('必要なJSONファイルが見つかりません。');
             return;
         }
 
-        const boardData = JSON.parse(await fs.readFile(boardDataFile, 'utf8'));
-        const sourceData = JSON.parse(await fs.readFile(sourceDataFile, 'utf8'));
+        const boardData = JSON.parse(await fs.readFile(path.join(boardDataDir, boardDataFile), 'utf8'));
+        const sourceData = JSON.parse(await fs.readFile(path.join(sourceDataDir, sourceDataFile), 'utf8'));
 
         const mergedData = {};
         const emailMap = new Map(boardData.map(item => [item.email, item]));
