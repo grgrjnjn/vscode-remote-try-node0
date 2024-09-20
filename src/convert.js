@@ -1,10 +1,6 @@
-// do_plugins.js
-
-// plugins/plugin_*.jsをすべてを非同期で実行する
-
-// do_plugins.js
 import { promises as fs } from 'fs';
 import path from 'path';
+import url from 'url';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -17,7 +13,7 @@ async function runPlugins(pluginsDir) {
   const results = await Promise.all(jsFiles.map(async (file) => {
     try {
       const pluginPath = path.join(pluginsDir, file);
-      const plugin = await import(pluginPath);
+      const plugin = await import(url.pathToFileURL(pluginPath));
       return await plugin.run();
     } catch (error) {
       console.error(`Error in plugin ${file}: ${error.message}`);
@@ -29,7 +25,7 @@ async function runPlugins(pluginsDir) {
 }
 
 async function main() {
-  const pluginsDir = path.join(__dirname, 'plugins');
+  const pluginsDir = path.join(__dirname, '..', 'src', 'plugins');
   try {
     const results = await runPlugins(pluginsDir);
     console.log('All plugins executed. Results:', results);
