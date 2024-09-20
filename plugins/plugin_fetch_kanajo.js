@@ -51,7 +51,6 @@ async function rewriteHTML(html) {
 async function saveHTML(html, fileName) {
   const fullPath = path.resolve(fileName);
   await fs.writeFile(fullPath, html);
-  console.log(`HTMLが保存されました: ${fullPath}`);
 }
 
 export async function run() {

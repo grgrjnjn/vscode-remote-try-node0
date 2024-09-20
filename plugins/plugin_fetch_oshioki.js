@@ -35,7 +35,6 @@ async function fetchAndSaveHTML() {
 
     // HTMLをファイルに保存
     await fs.writeFile(outputFile, html);
-    console.log(`HTMLが保存されました: ${outputFile}`);
 
     // リソースを解放
     dom.window.close();

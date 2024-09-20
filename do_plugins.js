@@ -1,4 +1,7 @@
 // do_plugins.js
+
+// plugins/plugin_*.jsをすべてを非同期で実行する
+
 import { promises as fs } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -8,7 +11,7 @@ const __dirname = path.dirname(__filename);
 
 async function runPlugins(pluginsDir) {
   const pluginFiles = await fs.readdir(pluginsDir);
-  const jsFiles = pluginFiles.filter(file => /\.js$/.test(file));
+  const jsFiles = pluginFiles.filter(file => /^plugin_.+\.js$/.test(file));
 
   const results = await Promise.all(jsFiles.map(async (file) => {
     try {
