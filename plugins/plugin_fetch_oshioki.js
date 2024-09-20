@@ -8,7 +8,7 @@ import { JSDOM, VirtualConsole } from 'jsdom';
 import { promises as fs } from 'fs';
 import path from 'path';
 
-const url = 'https://oshioki24.com/board/search/3/13/0/1';
+const url = 'https://oshioki24.com/board/search/3/13/1/';
 const outputDir = 'data/source/html';
 const outputFile = path.join(outputDir, 'oshioki.html');
 
