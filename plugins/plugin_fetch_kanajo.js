@@ -15,7 +15,8 @@ import { JSDOM } from 'jsdom';
 
 const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36';
 const THREAD_URL = 'https://kanajo.com/public/thread/index?id=1';
-const OUTPUT_FILE = 'kanajo.html';
+const OUTPUT_DIR = 'data/source/html';
+const OUTPUT_FILE = path.join(OUTPUT_DIR, 'kanajo.html');
 const MAIL_LINK_PATTERN = /https:\/\/kanajo\.com\/public\/mail\/\?type=comment&id=\d+/;
 
 async function fetchHTML(url) {
@@ -49,8 +50,9 @@ async function rewriteHTML(html) {
 }
 
 async function saveHTML(html, fileName) {
-  const fullPath = path.resolve(fileName);
-  await fs.writeFile(fullPath, html);
+  // 出力ディレクトリが存在しない場合は作成
+  await fs.mkdir(path.dirname(fileName), { recursive: true });
+  await fs.writeFile(fileName, html);
 }
 
 export async function run() {
@@ -67,7 +69,7 @@ export async function run() {
 
 // 単体実行用のコード
 if (import.meta.url === `file://${process.argv[1]}`) {
-    run()
-      .then(result => console.log(result))
-      .catch(error => console.error('エラー:', error));
-  }
+  run()
+    .then(result => console.log(result))
+    .catch(error => console.error('エラー:', error));
+}
