@@ -6,9 +6,11 @@
 
 import { JSDOM, VirtualConsole } from 'jsdom';
 import { promises as fs } from 'fs';
+import path from 'path';
 
 const url = 'https://oshioki24.com/board/search/3/13/0/1';
-const outputFile = 'oshioki.html';
+const outputDir = 'data/source/html';
+const outputFile = path.join(outputDir, 'oshioki.html');
 
 async function fetchAndSaveHTML() {
   try {
@@ -32,6 +34,9 @@ async function fetchAndSaveHTML() {
 
     // 動的に生成されたHTMLを取得
     const html = dom.serialize();
+
+    // 出力ディレクトリが存在しない場合は作成
+    await fs.mkdir(outputDir, { recursive: true });
 
     // HTMLをファイルに保存
     await fs.writeFile(outputFile, html);
