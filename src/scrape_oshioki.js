@@ -1,13 +1,15 @@
+// CoomonJS形式からES modules形式に変換してください。
+// globはES modules形式に対応していないので使うのをやめます。
+// data/source/html/oshioki_*.htmlの最新のファイルを読み込む処理を、単純にdata/source/html/oshioki.htmlを読み込むように変更します。
+// 修正コードを示してください。
 
-const cheerio = require('cheerio');
-const fs = require('fs');
-const path = require('path');
-const glob = require('glob');
+import { load } from 'cheerio';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-function getLatestHtmlFile() {
-  const htmlFiles = glob.sync(path.resolve(__dirname, '..', 'data', 'source', 'html', 'oshioki_*.html'));
-  return htmlFiles.sort((a, b) => fs.statSync(b).mtime.getTime() - fs.statSync(a).mtime.getTime())[0];
-}
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 function formatPostTime(dateTimeString) {
   const match = dateTimeString.match(/(\d{4})\.(\d{2})\.(\d{2})\((\w+)\) (\d{2}:\d{2})/);
@@ -24,7 +26,7 @@ function scrapeData(htmlFilePath) {
     const html = fs.readFileSync(htmlFilePath, 'utf8');
 
     // Cheerioを使用してHTMLをパース
-    const $ = cheerio.load(html);
+    const $ = load(html);
 
     const results = [];
 
@@ -87,20 +89,7 @@ function scrapeData(htmlFilePath) {
   }
 }
 
-// コマンドライン引数からHTMLファイル名を取得
-let htmlFilePath = process.argv[2];
-
-if (!htmlFilePath) {
-  // ファイル名が指定されていない場合、最新のファイルを使用
-  htmlFilePath = getLatestHtmlFile();
-  if (!htmlFilePath) {
-    console.error('HTMLファイルが見つかりません。');
-    process.exit(1);
-  }
-  console.log(`最新のHTMLファイルを使用します: ${htmlFilePath}`);
-} else {
-  // 指定されたファイル名のパスを解決
-  htmlFilePath = path.resolve(__dirname, '..', 'data', 'source', 'html', htmlFilePath);
-}
+// 特定のHTMLファイルを使用
+const htmlFilePath = path.resolve(__dirname, '..', 'data', 'source', 'html', 'oshioki.html');
 
 scrapeData(htmlFilePath);
