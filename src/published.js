@@ -4,7 +4,6 @@
 // 正しく動作しているのかは未確認、とりあえず動く
 
 
-// CoomonJS形式からES modules形式に変換してください。
 
 import fs from 'fs';
 import path from 'path';
