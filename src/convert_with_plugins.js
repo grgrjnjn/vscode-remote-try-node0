@@ -8,7 +8,7 @@ const __dirname = path.dirname(__filename);
 
 async function runPlugins(pluginsDir) {
   const pluginFiles = await fs.readdir(pluginsDir);
-  const jsFiles = pluginFiles.filter(file => /^plugin_.+\.js$/.test(file));
+  const jsFiles = pluginFiles.filter(file => /^plugin_convert_.+\.js$/.test(file));
 
   const results = await Promise.all(jsFiles.map(async (file) => {
     try {
