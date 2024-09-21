@@ -8,6 +8,21 @@
 // 連続10以上のアクセスをすることになるので、間隔を開ける？
 // 開始時間ばいつもピッタリにならないようにランダムなスリープを入れる？
 
+
+// HTMLテキストに、以下のようなaタグで囲まれたimgタグが複数ある。
+// <a href="https://kanajo.com/public/thread/img/*"><img width="48px" height="64px" src="http://kanajo.com/public/assets/img/bbs/*" alt=""></a>
+// この部分をaタグのhrefの値をsrcとするimgタグに置き換えたい。
+// テキストに対して正規表現を用いた方が簡単ではないかと思う。
+
+
+// ###具体例
+// <a href="https://kanajo.com/public/thread/img/?id=9330015&amp;type=comment&amp;no=1"><img width="48px" height="64px" src="http://kanajo.com/public/assets/img/bbs/00000001/thumb_09d24649051a95379075bc60ac592714.jpg?1726886796" alt=""></a>
+// ↓
+// <img src="https://kanajo.com/public/thread/img/?id=9330015&amp;type=comment&amp;no=1" alt=""></a>
+
+
+
+
 import { promises as fs } from 'fs';
 import path from 'path';
 import { JSDOM } from 'jsdom';
@@ -45,6 +60,13 @@ async function rewriteHTML(html) {
     }
   }
   
+    // 画像リンクの置換
+    let serialized = dom.serialize();
+    serialized = serialized.replace(
+      /<a href="(https:\/\/kanajo\.com\/public\/thread\/img\/[^"]+)"><img[^>]+><\/a>/g,
+      '<img src="$1" alt="">'
+    );
+
   return dom.serialize();
 }
 
