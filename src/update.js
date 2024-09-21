@@ -12,6 +12,7 @@
 // ・targetのemailとsourceのemailが一致、かつ、targetのpostTimeとsourceのpostTimeが一致しない場合、targetのnumberOfSimilarPostsをカウントアップし、それ以外の項目をsourceの値で上書きする。
 // ・targetのemailとsourceのemailが一致しない場合、numberOfSimilarPostsを1にセットしたsourceのitemをtargetに追加する。
 
+// updateAndProcessDataの結果の保存の部分少し気になります。より明瞭に、よりシンプルな実装にすべく提案をお願いします。
 
 // update.js
 import { promises as fs } from 'fs';
@@ -77,16 +78,6 @@ function updateData(targetData, sourceData) {
     return Object.values(updatedData).sort((a, b) => new Date(b.postTime) - new Date(a.postTime));
 }
 
-function generateTimestamp() {
-    const now = new Date();
-    return now.getFullYear() +
-           ('0' + (now.getMonth() + 1)).slice(-2) +
-           ('0' + now.getDate()).slice(-2) +
-           ('0' + now.getHours()).slice(-2) +
-           ('0' + now.getMinutes()).slice(-2) +
-           ('0' + now.getSeconds()).slice(-2);
-}
-
 async function readBoardData() {
     const latestBoardDataFile = await getLatestBoardDataFile();
     if (!latestBoardDataFile) {
@@ -104,25 +95,28 @@ async function readAllSourceData() {
     return allSourceData.flat();
 }
 
-async function updateAndProcessData() {
-    try {
-        // 1. データの読み込み
-        const targetData = await readBoardData();
-        const sourceData = await readAllSourceData();
-
-        // 2. データの更新と整理
-        const updatedData = updateData(targetData, sourceData);
-
-        // 3. 結果の保存
-        const outputFileName = `${BOARD_DATA_PREFIX}${generateTimestamp()}${JSON_EXT}`;
-        const outputPath = path.join(BOARD_DATA_DIR, outputFileName);
-        await writeJsonFile(outputPath, updatedData);
-
-        console.log(`更新、重複排除、ソートが完了しました。出力ファイル: ${outputPath}`);
-    } catch (error) {
-        console.error('処理中にエラーが発生しました:', error.message);
-        throw error; // エラーを上位に伝播させる
-    }
+function generateTimestamp() {
+    return new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14);
 }
 
-updateAndProcessData();
+async function saveUpdatedData(data) {
+    const timestamp = generateTimestamp();
+    const fileName = `${BOARD_DATA_PREFIX}${timestamp}${JSON_EXT}`;
+    const filePath = path.join(BOARD_DATA_DIR, fileName);
+    
+    await writeJsonFile(filePath, data);
+    return filePath;
+}
+async function updateAndProcessData() {
+    const targetData = await readBoardData();
+    const sourceData = await readAllSourceData();
+    const updatedData = updateData(targetData, sourceData);
+    
+    const outputPath = await saveUpdatedData(updatedData);
+    console.log(`更新、重複排除、ソートが完了しました。出力ファイル: ${outputPath}`);
+}
+
+updateAndProcessData().catch(error => {
+    console.error('処理中にエラーが発生しました:', error);
+    process.exit(1);
+});
