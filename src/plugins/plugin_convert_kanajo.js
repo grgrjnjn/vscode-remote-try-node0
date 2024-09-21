@@ -1,4 +1,5 @@
-// // 画像URLの取得で、リンク先大画像があればそちら、なければ小画像をURLとして採用
+
+// この処理不要となったので削除=>画像URLの取得で、リンク先大画像があればそちらを取得
 
 // src/plugins/plugin_convert_kanajo.js
 import { load } from 'cheerio';
@@ -21,17 +22,12 @@ const formatPostTime = (dateTimeString) => {
 
 const extractImages = ($) => {
     const images = [];
-    $('a[href^="https://kanajo.com/public/thread/img/"]').each((i, el) => {
-        images.push($(el).attr('href'));
+    $('img').each((i, el) => {
+        const src = $(el).attr('src');
+        if (src && src.startsWith('http')) {
+            images.push(src);
+        }
     });
-    if (images.length === 0) {
-        $('img').each((i, el) => {
-            const src = $(el).attr('src');
-            if (src && src.startsWith('http')) {
-                images.push(src);
-            }
-        });
-    }
     return images;
 };
 
