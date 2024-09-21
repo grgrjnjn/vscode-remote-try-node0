@@ -1,0 +1,1 @@
+*/5 * * * * cd /home/debian/underground && node src/fetch_with_plugins.js && node src/convert_with_plugins.js && node src/update_and_published.js
