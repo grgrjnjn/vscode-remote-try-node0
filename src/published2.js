@@ -1,16 +1,13 @@
 
-
 // processData関数をもっと明瞭にするために以下のように修正してください。
 // ・最新のboard_data_*.jsonファイルの読み込み
 // ・postTimeが24時間以内の記事だけ残すフィルタ関数にかける
 // ・ブラックリストに該当する記事をフィルタする関数にかける
-// ・参照される画像ファイルをpublic/imageに移動し、imagesの値も変更する
 // ・public/board_data.jsonとして書き出す
 
-// 不要ファイル削除機能は廃止します。
+// ・画像ファイルに関する処理を全て削除する
 
-
-
+//published2.js
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -20,7 +17,6 @@ const __dirname = path.dirname(__filename);
 
 const CONTENT_DIR = path.join(__dirname, '..', 'data', 'contents');
 const BLACKLIST_PATH = path.join(__dirname, '..', 'data', 'blacklist.list');
-const PUBLIC_IMAGE_DIR = path.join(__dirname, '..', 'public', 'image');
 const OUTPUT_PATH = path.join(__dirname, '..', 'public', 'board_data.json');
 const HOURS_LIMIT = 24;
 
@@ -57,26 +53,6 @@ function filterBlacklistedPosts(data, blacklist) {
     return data.filter(item => !blacklist.includes(item.email));
 }
 
-async function moveAndUpdateImages(data) {
-    for (const item of data) {
-        if (item.images && Array.isArray(item.images)) {
-            item.images = await Promise.all(item.images.map(async imagePath => {
-                if (imagePath.startsWith('data/source/image/')) {
-                    const fileName = path.basename(imagePath);
-                    const sourcePath = path.join(__dirname, '..', imagePath);
-                    const destPath = path.join(PUBLIC_IMAGE_DIR, fileName);
-                    await fs.rename(sourcePath, destPath).catch(error => {
-                        console.warn(`画像の移動に失敗しました: ${sourcePath} -> ${destPath}`, error);
-                    });
-                    return `image/${fileName}`;
-                }
-                return imagePath;
-            }));
-        }
-    }
-    return data;
-}
-
 async function processData() {
     // 最新のboard_data_*.jsonファイルの読み込み
     const latestFile = await getLatestBoardDataFile();
@@ -89,13 +65,11 @@ async function processData() {
     const blacklist = await readBlacklist();
     filteredData = filterBlacklistedPosts(filteredData, blacklist);
 
-    // 参照される画像ファイルをpublic/imageに移動し、imagesの値も変更する
-    filteredData = await moveAndUpdateImages(filteredData);
-
     // public/board_data.jsonとして書き出す
     await fs.writeFile(OUTPUT_PATH, JSON.stringify(filteredData, null, 2));
 
     console.log(`処理が完了しました。出力ファイル: ${OUTPUT_PATH}`);
+
 }
 
 processData().catch(error => {
