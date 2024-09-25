@@ -1,5 +1,5 @@
 
-https://github.com/grgrjnjn/vscode-remote-try-node1
+https://github.com/grgrjnjn/vscode-remote-try-node0
 
 $ node do_plugins.js 
 $ node src/convert_with_plugins.js 
